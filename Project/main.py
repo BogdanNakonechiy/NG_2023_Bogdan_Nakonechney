@@ -33,6 +33,7 @@ def end_of_cut(event):
     difference_x = abs(start_x - end_cut_x)
     difference_y = abs(start_y - end_cut_y)
 
+    global screenshot
     screenshot = take_screenshot().crop((less_x + 1, less_y + 1, less_x + difference_x - 1, less_y + difference_y - 1 ))
     root.destroy()
     new_screenshot(screenshot)
@@ -43,7 +44,7 @@ def take_screenshot():
     x1 = x + screenshot.size[0]
     y1 = y + screenshot.size[1]
 
-    return ImageGrab.grab().crop((x, y, x1, y1))
+    return ImageGrab.grab().crop((x + 2, y + 2, x1 - 2, y1 - 2))
 
 def save_screenshot():
     take_screenshot().save("new_screenshot.png")
@@ -64,12 +65,17 @@ def new_screenshot(screenshot):
     # Variables
     global canvas, root, tool
 
+    # Initial tool
+    tool = "Brush"
+
     root = tk.Tk()
 
+    # Root geometry
     root.title('Screenshot (╯°□°）╯︵ ┻━┻')
     root.geometry(f'{screenshot.size[0]}x{screenshot.size[1] + 30}')
     root.resizable(width=False, height=False)
 
+    # Canvas geometry
     canvas = tk.Canvas(root, width=screenshot.size[0], height=screenshot.size[1])
     canvas.pack()
 
@@ -98,9 +104,7 @@ def new_screenshot(screenshot):
 # Take screenshot
 screenshot = pyautogui.screenshot()
 
-tool = "Brush"
-
 # Resize the screenshot
 screenshot.thumbnail((screenshot.size[0] - 160, screenshot.size[1] - 90))
-
+# Run
 new_screenshot(screenshot)
