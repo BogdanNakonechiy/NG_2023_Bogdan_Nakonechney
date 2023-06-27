@@ -40,8 +40,8 @@ def end_of_cut(event):
 def take_screenshot():
     x = root.winfo_rootx() + canvas.winfo_x()
     y = root.winfo_rooty() + canvas.winfo_y()
-    x1 = x + canvas_width
-    y1 = y + canvas_height
+    x1 = x + screenshot.size[0]
+    y1 = y + screenshot.size[1]
 
     return ImageGrab.grab().crop((x, y, x1, y1))
 
@@ -60,26 +60,17 @@ def add_to_clipboard():
     win32clipboard.SetClipboardData(win32clipboard.CF_DIB, data)
     win32clipboard.CloseClipboard()
 
-# Take screenshot
-screenshot = pyautogui.screenshot()
-
 def new_screenshot(screenshot):
     # Variables
-    global canvas, root, canvas_width, canvas_height, tool
-    tool = "Brush"
-    canvas_width = screenshot.size[0] - 160
-    canvas_height = screenshot.size[1] - 90
-
-    # Resize the screenshot
-    screenshot.thumbnail((canvas_width, canvas_height))
+    global canvas, root, tool
 
     root = tk.Tk()
 
     root.title('Screenshot (╯°□°）╯︵ ┻━┻')
-    root.geometry(f'{canvas_width}x{canvas_height + 30}')
+    root.geometry(f'{screenshot.size[0]}x{screenshot.size[1] + 30}')
     root.resizable(width=False, height=False)
 
-    canvas = tk.Canvas(root, width=canvas_width, height=canvas_height)
+    canvas = tk.Canvas(root, width=screenshot.size[0], height=screenshot.size[1])
     canvas.pack()
 
     screenshot = ImageTk.PhotoImage(screenshot)
@@ -103,5 +94,13 @@ def new_screenshot(screenshot):
     btn_clipboard.pack(side="right")
 
     root.mainloop()
+
+# Take screenshot
+screenshot = pyautogui.screenshot()
+
+tool = "Brush"
+
+# Resize the screenshot
+screenshot.thumbnail((screenshot.size[0] - 160, screenshot.size[1] - 90))
 
 new_screenshot(screenshot)
