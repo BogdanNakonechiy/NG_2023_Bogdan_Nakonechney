@@ -1,6 +1,7 @@
 import tkinter as tk
 import pyautogui
 import win32clipboard
+import keyboard
 from io import BytesIO
 from PIL import Image, ImageDraw, ImageTk, ImageGrab
 
@@ -71,7 +72,7 @@ def new_screenshot(screenshot):
     root = tk.Tk()
 
     # Root geometry
-    root.title('Screenshot (╯°□°）╯︵ ┻━┻')
+    root.title('Screenshot')
     root.geometry(f'{screenshot.size[0]}x{screenshot.size[1] + 30}')
     root.resizable(width=False, height=False)
 
@@ -101,10 +102,16 @@ def new_screenshot(screenshot):
 
     root.mainloop()
 
-# Take screenshot
-screenshot = pyautogui.screenshot()
+def hotkey(key):
+    if key.name == 'p':
+        # Take screenshot
+        global screenshot
+        screenshot = pyautogui.screenshot()
 
-# Resize the screenshot
-screenshot.thumbnail((screenshot.size[0] - 160, screenshot.size[1] - 90))
-# Run
-new_screenshot(screenshot)
+        # Resize the screenshot
+        screenshot.thumbnail((screenshot.size[0] - 160, screenshot.size[1] - 90))
+        # Run
+        new_screenshot(screenshot)
+
+keyboard.on_press(hotkey)
+keyboard.wait()
