@@ -4,7 +4,7 @@ import win32clipboard
 from io import BytesIO
 from PIL import Image, ImageDraw, ImageTk, ImageGrab
 
-def start_drawing(event):
+def start_of_cut(event):
     global start_x, start_y
     start_x = event.x
     start_y = event.y
@@ -19,6 +19,23 @@ def edit_screenshot(event):
             x = event.x
             y = event.y
             canvas.create_oval(x - 2, y - 2, x + 2, y + 2, fill="black")
+        case "Cut":
+            global end_cut_x, end_cut_y
+            canvas.delete("highlight")
+            end_cut_x = event.x
+            end_cut_y = event.y
+            canvas.create_rectangle(start_x, start_y, event.x, event.y, outline="red" ,tags="highlight")
+
+            canvas.bind("<ButtonRelease-1>", end_of_cut)
+def end_of_cut(event):
+    less_x = min(start_x, end_cut_x)
+    less_y = min(start_y, end_cut_y)
+    difference_x = abs(start_x - end_cut_x)
+    difference_y = abs(start_y - end_cut_y)
+
+    screenshot = take_screenshot().crop((less_x + 1, less_y + 1, less_x + difference_x - 1, less_y + difference_y - 1 ))
+    root.destroy()
+    new_screenshot(screenshot)
 
 def take_screenshot():
     x = root.winfo_rootx() + canvas.winfo_x()
@@ -43,11 +60,12 @@ def add_to_clipboard():
     win32clipboard.SetClipboardData(win32clipboard.CF_DIB, data)
     win32clipboard.CloseClipboard()
 
-def main():
-    # Take screenshot
-    screenshot = pyautogui.screenshot()
+# Take screenshot
+screenshot = pyautogui.screenshot()
 
+def new_screenshot(screenshot):
     # Variables
+    global canvas, root, canvas_width, canvas_height, tool
     tool = "Brush"
     canvas_width = screenshot.size[0] - 160
     canvas_height = screenshot.size[1] - 90
@@ -55,25 +73,27 @@ def main():
     # Resize the screenshot
     screenshot.thumbnail((canvas_width, canvas_height))
 
-    # -loop-
     root = tk.Tk()
 
     root.title('Screenshot (╯°□°）╯︵ ┻━┻')
-    root.geometry(f'{canvas_width + 5}x{canvas_height + 30}')
+    root.geometry(f'{canvas_width}x{canvas_height + 30}')
     root.resizable(width=False, height=False)
 
-    canvas = tk.Canvas(root, width=canvas_width, height=canvas_height,)
+    canvas = tk.Canvas(root, width=canvas_width, height=canvas_height)
     canvas.pack()
 
     screenshot = ImageTk.PhotoImage(screenshot)
     image_item = canvas.create_image(0, 0, anchor="nw", image=screenshot)
 
+    # Mouse event
+    canvas.bind("<ButtonPress-1>", start_of_cut)
+    canvas.bind("<B1-Motion>", edit_screenshot)
 
     # Button
-    btn_brush = tk.Button(root, text="Brush", command=lambda : change_tool("Brush"))
+    btn_brush = tk.Button(root, text="Brush", command=lambda: change_tool("Brush"))
     btn_brush.pack(side='left')
 
-    btn_cut = tk.Button(root, text="Cut", command=lambda : change_tool("Cut"))
+    btn_cut = tk.Button(root, text="Cut", command=lambda: change_tool("Cut"))
     btn_cut.pack(side="left")
 
     btn_save = tk.Button(root, text="Save", command=save_screenshot)
@@ -82,10 +102,6 @@ def main():
     btn_clipboard = tk.Button(root, text="Add to clipboard", command=add_to_clipboard)
     btn_clipboard.pack(side="right")
 
-    # Mouse move event
-    canvas.bind("<Button-1>", start_drawing)
-    canvas.bind("<B1-Motion>", edit_screenshot)
-
     root.mainloop()
 
-main()
+new_screenshot(screenshot)
